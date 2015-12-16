@@ -1,0 +1,33 @@
+# SWDreader in R
+# author: Christian Richard
+#
+# TO DO:
+# - Determine how to modify Morlet wavelet parameters to match LW algorithm if scale != frequency in Hz
+# - Determine whether frequencies along y-axis are log(frequency) so that harmonics detection can work
+# -
+
+library(WaveletComp)
+
+# had to remove the LastWave header information first to get data from an EEG channel in file 35567_052213.lwr
+b = file("./SWDreader//sans_header.lwr", "rb")
+
+# this line gets the first 1440000 time points, i.e. all 2 hours of the first channel (sample rate = 200 Hz)
+# then writes results to file
+br = readBin(b, numeric(), 1440000)
+write(data.frame(br)$br, "./SWDreader/singleChannel", ncolumns=1)
+
+s = read.table("./SWDreader//singleChannel")
+
+# IN CASE YOU GET ERROR "Error in plot.new() : figure margins too large"
+# JUST DO par(mfrow=c(1))
+
+# TESTING - this region contains 4 SWDs
+s.sub = s$V1[400000:450000]
+s.sub = data.frame(s.sub)
+my.w = analyze.wavelet(s.sub, loess.span=0, dt=1, dj=1/10)
+
+# TO PLOT TIME SLICE OF TIME-FREQUENCY REPRESENTATION OF POWER
+# plot(my.w$Power[1:131,21000], type="l")
+
+# TO GET SUBSET OF TIME-FREQUENCY REPRESENTATION OF POWER
+# mx = as.matrix(my.w$Power[1:131,20000:20400])
