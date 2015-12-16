@@ -1,0 +1,29 @@
+# SWDreader in R
+# author: Christian Richard
+# experimenting with different R packages
+
+# TO DO:
+# - Determine how to modify Morlet wavelet parameters to match LW algorithm if scale != frequency in Hz
+# - Determine whether frequencies along y-axis are log(frequency) so that harmonics detection can work
+# - How to speed up calculation? VERY SLOW!
+
+
+# Using R package Rwave
+# Does not provide access to parameters that highlight harmonics across time
+# library(Rwave)
+# cwt(s.sub$s.sub, noctave=6, nvoice=10, w0=2*pi, plot=T)
+
+# Saving time-frequency plots
+# jpeg('rplot.jpg')
+# plot(x,y)
+# dev.off()
+
+# EEG channel 1 (RF-RB?) for mouse 35567_052213.lwr
+s = read.table("./SWDreader//singleChannel")
+
+
+wt <- wavCWT(s.sub$s.sub, n.scale=60, scale.range=c(1,128), shift=15, wavelet="morlet")
+
+# this gives you a time slice of the time-frequency representations needed for detection of harmonics and phase difference calculations
+tslice_power <- Mod(wt[19760, 1:41])
+tslice_phase <- Arg(wt[19760, 1:41])
