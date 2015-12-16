@@ -1,6 +1,7 @@
 # SWDreader in R
 # author: Christian Richard
-#
+# Using R package WaveletComp
+
 # TO DO:
 # - Determine how to modify Morlet wavelet parameters to match LW algorithm if scale != frequency in Hz
 # - Determine whether frequencies along y-axis are log(frequency) so that harmonics detection can work
