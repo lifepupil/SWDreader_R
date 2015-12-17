@@ -27,3 +27,19 @@ wt <- wavCWT(s.sub$s.sub, n.scale=60, scale.range=c(1,128), shift=15, wavelet="m
 # this gives you a time slice of the time-frequency representations needed for detection of harmonics and phase difference calculations
 tslice_power <- Mod(wt[19760, 1:41])
 tslice_phase <- Arg(wt[19760, 1:41])
+
+# harmonic filter with peaks set to those displayed in tslice_power
+format(tslice, scientific=F)
+hf = rep(0,41)
+hf[17] = 1
+hf[20] = 1
+hf[25] = 1
+hf[33] = 1
+hfr = hf[16:34]
+
+# to compare peaks visually
+par(mfrow=c(2,1))
+plot(tslice, type='l')
+plot(hf, type='l')
+
+# cross-covariance
