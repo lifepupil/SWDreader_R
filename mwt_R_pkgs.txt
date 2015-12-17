@@ -1,6 +1,8 @@
 # SWDreader in R
+# mwt_R_pkgs.txt
 # author: Christian Richard
 # experimenting with different R packages
+# source("/Users/lifepupil/Code/SWDreader/mwt_R_pkgs.txt")
 
 # TO DO:
 # - Determine how to modify Morlet wavelet parameters to match LW algorithm if scale != frequency in Hz
@@ -18,28 +20,48 @@
 # plot(x,y)
 # dev.off()
 
+startt = 400000
+endt = 450000
 # EEG channel 1 (RF-RB?) for mouse 35567_052213.lwr
+print("reading channel data")
 s = read.table("./SWDreader//singleChannel")
+print("channel subset")
+s.sub = s$V1[startt:endt]
+# s.sub.df = data.frame(s.sub)
+s.sub = data.frame(s.sub)
 
+library(wmtsa)
+print("Performing Morlet wavelet transform... ")
+wt <- wavCWT(s.sub$s.sub, n.scale=100, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=40, wavelet="morlet")
+plot(wt, type='image')
 
-wt <- wavCWT(s.sub$s.sub, n.scale=60, scale.range=c(1,128), shift=15, wavelet="morlet")
+instPowerDo = 0
+ccCalc = 0
+t = 19760
 
-# this gives you a time slice of the time-frequency representations needed for detection of harmonics and phase difference calculations
-tslice_power <- Mod(wt[19760, 1:41])
-tslice_phase <- Arg(wt[19760, 1:41])
+if (instPowerDo==1) {
+  # this gives you a time slice of the time-frequency representations needed for detection of harmonics and phase difference calculations
+  tslice_power <- Mod(wt[t, 1:41])
+  tslice_phase <- Arg(wt[t, 1:41])
+  format(tslice, scientific=F)
 
-# harmonic filter with peaks set to those displayed in tslice_power
-format(tslice, scientific=F)
-hf = rep(0,41)
-hf[17] = 1
-hf[20] = 1
-hf[25] = 1
-hf[33] = 1
-hfr = hf[16:34]
+  t=19800; plot(Mod(wt[t, 1:41]), type='l')
 
-# to compare peaks visually
-par(mfrow=c(2,1))
-plot(tslice, type='l')
-plot(hf, type='l')
+  if (ccCalc==1) {
+    # cross-covariance
+    # harmonic filter with peaks set to those displayed in tslice_power
+    hf = rep(0,41)
+    hf[17] = 1
+    hf[20] = 1
+    hf[25] = 1
+    hf[33] = 1
+    hfr = hf[16:34]
 
-# cross-covariance
+    # to compare peaks visually
+    par(mfrow=c(2,1))
+    plot(tslice, type='l')
+    plot(hf, type='l')
+
+  }
+
+}
