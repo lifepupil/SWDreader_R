@@ -32,7 +32,9 @@ s.sub = data.frame(s.sub)
 
 library(wmtsa)
 print("Performing Morlet wavelet transform... ")
-wt <- wavCWT(s.sub$s.sub, n.scale=100, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=40, wavelet="morlet")
+wt <- wavCWT(s.sub$s.sub, n.scale=200, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=30, wavelet="morlet")
+
+print("Rendering scalogram")
 plot(wt, type='image')
 
 instPowerDo = 0
@@ -65,3 +67,4 @@ if (instPowerDo==1) {
   }
 
 }
+print("DONE")
