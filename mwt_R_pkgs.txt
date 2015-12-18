@@ -9,17 +9,7 @@
 # - Determine whether frequencies along y-axis are log(frequency) so that harmonics detection can work
 # - How to speed up calculation? VERY SLOW!
 
-
-# Using R package Rwave
-# Does not provide access to parameters that highlight harmonics across time
-# library(Rwave)
-# cwt(s.sub$s.sub, noctave=6, nvoice=10, w0=2*pi, plot=T)
-
-# Saving time-frequency plots
-# jpeg('rplot.jpg')
-# plot(x,y)
-# dev.off()
-
+pkg = "Rwave"
 startt = 400000
 endt = 450000
 # EEG channel 1 (RF-RB?) for mouse 35567_052213.lwr
@@ -30,41 +20,58 @@ s.sub = s$V1[startt:endt]
 # s.sub.df = data.frame(s.sub)
 s.sub = data.frame(s.sub)
 
-library(wmtsa)
-print("Performing Morlet wavelet transform... ")
-wt <- wavCWT(s.sub$s.sub, n.scale=200, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=30, wavelet="morlet")
 
-print("Rendering scalogram")
-plot(wt, type='image')
-
-instPowerDo = 0
-ccCalc = 0
-t = 19760
-
-if (instPowerDo==1) {
-  # this gives you a time slice of the time-frequency representations needed for detection of harmonics and phase difference calculations
-  tslice_power <- Mod(wt[t, 1:41])
-  tslice_phase <- Arg(wt[t, 1:41])
-  format(tslice, scientific=F)
-
-  t=19800; plot(Mod(wt[t, 1:41]), type='l')
-
-  if (ccCalc==1) {
-    # cross-covariance
-    # harmonic filter with peaks set to those displayed in tslice_power
-    hf = rep(0,41)
-    hf[17] = 1
-    hf[20] = 1
-    hf[25] = 1
-    hf[33] = 1
-    hfr = hf[16:34]
-
-    # to compare peaks visually
-    par(mfrow=c(2,1))
-    plot(tslice, type='l')
-    plot(hf, type='l')
-
-  }
+# Using R package Rwave
+# Does not appear to provide access to parameters that highlight harmonics across time
+if (pkg=="Rwave") {
+  library(Rwave)
+  print("Performing Morlet wavelet transform... ")
+  cwt(s.sub$s.sub, noctave=6, nvoice=10, w0=2*pi, plot=T)
 
 }
+
+if (pkg=="wmtsa") {
+  library(wmtsa)
+  print("Performing Morlet wavelet transform... ")
+  wt <- wavCWT(s.sub$s.sub, n.scale=200, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=30, wavelet="morlet")
+
+  print("Rendering scalogram")
+  plot(wt, type='image')
+
+  instPowerDo = 0
+  ccCalc = 0
+  t = 19760
+
+  if (instPowerDo==1) {
+    # this gives you a time slice of the time-frequency representations needed for detection of harmonics and phase difference calculations
+    tslice_power <- Mod(wt[t, 1:41])
+    tslice_phase <- Arg(wt[t, 1:41])
+    format(tslice, scientific=F)
+
+    t=19800; plot(Mod(wt[t, 1:41]), type='l')
+
+    if (ccCalc==1) {
+      # cross-covariance
+      # harmonic filter with peaks set to those displayed in tslice_power
+      hf = rep(0,41)
+      hf[17] = 1
+      hf[20] = 1
+      hf[25] = 1
+      hf[33] = 1
+      hfr = hf[16:34]
+
+      # to compare peaks visually
+      par(mfrow=c(2,1))
+      plot(tslice, type='l')
+      plot(hf, type='l')
+
+    }
+  }
+}
+
+# Saving time-frequency plots
+# jpeg('rplot.jpg')
+# plot(x,y)
+# dev.off()
+
 print("DONE")
