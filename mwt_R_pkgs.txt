@@ -9,9 +9,11 @@
 # - Determine whether frequencies along y-axis are log(frequency) so that harmonics detection can work
 # - How to speed up calculation? VERY SLOW!
 
-pkg = "Rwave"
+pkg = "wmtsa"
 startt = 400000
 endt = 450000
+wtExist = 1
+
 # EEG channel 1 (RF-RB?) for mouse 35567_052213.lwr
 print("reading channel data")
 s = read.table("./SWDreader//singleChannel")
@@ -25,45 +27,64 @@ s.sub = data.frame(s.sub)
 # Does not appear to provide access to parameters that highlight harmonics across time
 if (pkg=="Rwave") {
   library(Rwave)
-  print("Performing Morlet wavelet transform... ")
+  print("Performing Morlet wavelet transform using Rwave package ... ")
   cwt(s.sub$s.sub, noctave=6, nvoice=10, w0=2*pi, plot=T)
-
 }
 
 if (pkg=="wmtsa") {
   library(wmtsa)
-  print("Performing Morlet wavelet transform... ")
-  wt <- wavCWT(s.sub$s.sub, n.scale=200, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=30, wavelet="morlet")
 
-  print("Rendering scalogram")
-  plot(wt, type='image')
+  if (wtExist==0) {
+    print("Performing Morlet wavelet transform using wmtsa package ... ")
+    wt <- wavCWT(s.sub$s.sub, n.scale=200, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=30, wavelet="morlet")
 
-  instPowerDo = 0
-  ccCalc = 0
-  t = 19760
+    # print("Rendering scalogram")
+    # plot(wt, type='image')
+  }
+
+
+  instPowerDo = 1
+  ccCalc = 1
+  t = 19800
+#  t = 19760
 
   if (instPowerDo==1) {
     # this gives you a time slice of the time-frequency representations needed for detection of harmonics and phase difference calculations
-    tslice_power <- Mod(wt[t, 1:41])
+
     tslice_phase <- Arg(wt[t, 1:41])
     format(tslice, scientific=F)
 
-    t=19800; plot(Mod(wt[t, 1:41]), type='l')
+    # plot(Mod(wt[t, 1:41]), type='l')
 
     if (ccCalc==1) {
       # cross-covariance
       # harmonic filter with peaks set to those displayed in tslice_power
       hf = rep(0,41)
-      hf[17] = 1
-      hf[20] = 1
-      hf[25] = 1
-      hf[33] = 1
+#      hf[c(33,25,19,15)-13] = 1
+#      hf[c(33,25,19,15)] = 1
+      hf[c(35,28,23,20)-10] = 1
+
       hfr = hf[16:34]
 
-      # to compare peaks visually
-      par(mfrow=c(2,1))
-      plot(tslice, type='l')
-      plot(hf, type='l')
+      print("Performing cross covariance operation")
+      ccv = ccf(hf, tslice_power, type="covariance", lag.max=41)
+#      ccv = ccf(hf, tslice_power, type="covariance")
+#      ccv = ccf(hf, tslice_power, type="covariance", lag.max=41)$acf[41:81]
+
+      # to compare superimposed peaks visually
+      print("Plotting results")
+      par(mfrow=c(3,1))
+      plot(tslice_power, type='l', axes=F)
+      axis(side = 1, at = seq(-100,100,1))
+      plot(hf, type='l', axes=F)
+      axis(side = 1, at = seq(-100,100,1))
+      plot(ccv, type='l', axes=F)
+      axis(side = 1, at = seq(-100,100,1))
+
+
+      # to identify the best candidate for harmonic frequencies (assuming that single harmonic filter can be used)
+#      ccv_max = max(ccv)
+#      ccv_pos = which.max(ccv)
 
     }
   }
