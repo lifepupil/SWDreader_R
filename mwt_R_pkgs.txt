@@ -62,30 +62,37 @@ if (pkg=="wmtsa") {
       hf = rep(0,41)
 #      hf[c(33,25,19,15)-13] = 1
 #      hf[c(33,25,19,15)] = 1
-      hf[c(35,28,23,20)-10] = 1
+      hf[c(7,14,19,22)-5] = 1
 
+      tp = rev(tslice_power)
       hfr = hf[16:34]
 
       print("Performing cross covariance operation")
-      ccv = ccf(hf, tslice_power, type="covariance", lag.max=41)
-#      ccv = ccf(hf, tslice_power, type="covariance")
-#      ccv = ccf(hf, tslice_power, type="covariance", lag.max=41)$acf[41:81]
+      ccv = ccf(hf, tp, type="covariance", lag.max=41)
+#      ccv = ccf(hf, tp, type="covariance")
+#      ccv = ccf(hf, tp, type="covariance", lag.max=41)$acf[41:81]
 
       # to compare superimposed peaks visually
       print("Plotting results")
       par(mfrow=c(3,1))
-      plot(tslice_power, type='l', axes=F)
+      plot(tp, type='l', axes=F)
       axis(side = 1, at = seq(-100,100,1))
       plot(hf, type='l', axes=F)
       axis(side = 1, at = seq(-100,100,1))
+
+      # rr = rev(ccv$acf)
       plot(ccv, type='l', axes=F)
       axis(side = 1, at = seq(-100,100,1))
+      axis(side = 2)
 
 
       # to identify the best candidate for harmonic frequencies (assuming that single harmonic filter can be used)
-#      ccv_max = max(ccv)
-#      ccv_pos = which.max(ccv)
-
+#      compensate_index0 = 1
+#      compensate_firstpeak_index = 1
+#      harmonicity = max(ccv$acf)
+#      ccv_index_max = which.max(ccv$acf)
+#      ccv_shift = ccv$lag[ccv_index_max,1,1]
+#      ccv_index_freq = abs(ccv_shift) + compensate_noindex0 + compensate_firstpeak_index
     }
   }
 }
