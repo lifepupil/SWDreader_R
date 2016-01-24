@@ -1,6 +1,5 @@
 # SWDreader in R
 # author: Christian Richard
-# Using R package WaveletComp
 
 
 

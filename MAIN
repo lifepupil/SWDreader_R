@@ -1,4 +1,5 @@
 # MAIN
+# SWDreader
 
 library(wmtsa)
 library(plotly)
@@ -31,23 +32,13 @@ if (wtExist == 0) {
 }
 
 if (hxExist == 0) {
-  harmonicity_series = rep(0, times = 1000)
-  for (t in 19000:20000) {
+ harmonicity_series = rep(0, times = 1000)
+ harmonicFreq_series = rep(0, times = 1000)
+
+ for (t in 19000:20000) {
     tslice_power = Mod(wt[t, 10:80])
     harmonicity_series[t-18999] = harmonicDetect(tslice_power)$harmonicity_max
-  }
-
-  if (debug1 == 1) {
-    # to compare superimposed peaks visually
-    print("Plotting results")
-    par(mfrow=c(3,1))
-    plot(tp, type='l', axes=F)
-    axis(side = 1, at = seq(-100,100,1))
-    plot(hf, type='l', axes=F)
-    axis(side = 1, at = seq(-100,100,1))
-    plot(ccv.sub, type='l', axes=F)
-    axis(side = 1, at = seq(-100,100,1))
-    axis(side = 2)
+    harmonicFreq_series[t-18999] = harmonicDetect(tslice_power)$freq_candidate
   }
 
   tx = t(data.matrix(Mod(wt[19000:20000, 10:80])))
@@ -58,8 +49,9 @@ if (hxExist == 0) {
     print("Plotting results")
     par(mfrow=c(3,1))
     plot(s.sub$s.sub[19000:20000], type='l')
-    plot_ly(z = tx, type = "heatmap")
+#    plot_ly(z = tx, type = "heatmap")
     plot(harmonicity_series, type='l')
+    plot(harmonicFreq_series, type='l')
   }
 
 }
