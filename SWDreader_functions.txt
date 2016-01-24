@@ -1,0 +1,26 @@
+# SWDreader_functions
+
+harmonicDetect <- function(tslice_power) {
+
+  tp = rev(tslice_power)
+
+  # harmonic filter with peaks set to those displayed in tslice_power
+  hf = rep(0,41)
+  hf[ c(7,14,19,22)-5 ] = 1
+
+  print("Performing cross covariance operation")
+  ccv = ccf(hf, tp, type="covariance", lag.max=41)
+
+  # to identify the best candidate for harmonic frequencies (assuming that single harmonic filter can be used)
+  compensate_noZeroIndex = 1
+  compensate_firstpeak_index = 1
+
+  harmonicity = max(ccv$acf)
+  ccv_index_max = which.max(ccv$acf)
+  ccv_shift = ccv$lag[ccv_index_max,1,1]
+  harmonic_freq = abs(ccv_shift) + compensate_noZeroIndex + compensate_firstpeak_index
+
+  h <- data.frame(harmonicity, harmonic_freq)
+
+  return (h)
+}
