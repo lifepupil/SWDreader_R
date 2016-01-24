@@ -1,6 +1,7 @@
 # SWDreader_functions
 
 harmonicDetect <- function(tslice_power) {
+debugg = 0
 
   tp = rev(tslice_power)
 
@@ -8,19 +9,35 @@ harmonicDetect <- function(tslice_power) {
   hf = rep(0,41)
   hf[ c(7,14,19,22)-5 ] = 1
 
-  print("Performing cross covariance operation")
-  ccv = ccf(hf, tp, type="covariance", lag.max=41)
+  # Performing cross covariance operation
+  ccv = ccf(tp, hf, type="covariance", lag.max=41, plot=F)
+  ccv.sub = ccv$acf[ which(ccv$lag >=0)]
 
   # to identify the best candidate for harmonic frequencies (assuming that single harmonic filter can be used)
-  compensate_noZeroIndex = 1
   compensate_firstpeak_index = 1
 
-  harmonicity = max(ccv$acf)
-  ccv_index_max = which.max(ccv$acf)
-  ccv_shift = ccv$lag[ccv_index_max,1,1]
-  harmonic_freq = abs(ccv_shift) + compensate_noZeroIndex + compensate_firstpeak_index
+  harmonicity_max = max(ccv.sub)
+  harmonicity_max_index = which.max(ccv.sub)
+  freq_candidate = harmonicity_max_index + compensate_firstpeak_index
 
-  h <- data.frame(harmonicity, harmonic_freq)
+  # index_shift = ccv$lag[harmonicity_max_index,1,1]
+  # freq_candidate = abs(index_shift) + compensate_noZeroIndex + compensate_firstpeak_index
+
+  h <- data.frame(harmonicity_max, harmonicity_max_index, freq_candidate)
+
+
+  if (debugg == 1) {
+    # to compare superimposed peaks visually
+    print("Plotting results")
+    par(mfrow=c(3,1))
+    plot(tp, type='l', axes=F)
+    axis(side = 1, at = seq(-100,100,1))
+    plot(hf, type='l', axes=F)
+    axis(side = 1, at = seq(-100,100,1))
+    plot(ccv.sub, type='l', axes=F)
+    axis(side = 1, at = seq(-100,100,1))
+    axis(side = 2)
+  }
 
   return (h)
 }

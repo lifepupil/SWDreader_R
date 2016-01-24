@@ -1,0 +1,65 @@
+# MAIN
+
+library(wmtsa)
+library(plotly)
+### tx = t(data.matrix(Mod(wt[19000:20000, 10:80]))) ;; plot_ly(z = tx, type = "heatmap")
+
+source("/Users/lifepupil/Code/SWDreader/SWDreader_functions.txt")
+
+startt = 400000
+endt = 450000
+t = 19800
+
+wtExist = 1
+hxExist = 0
+debug1 = 0
+debug2 = 1
+
+# EEG channel 1 (RF-RB?) for mouse 35567_052213.lwr
+print("reading channel data")
+s = read.table("./SWDreader//singleChannel")
+
+print("channel subset")
+# kludge
+s.sub = s$V1[startt:endt]
+s.sub = data.frame(s.sub)
+
+
+if (wtExist == 0) {
+  print("Performing Morlet wavelet transform using wmtsa package ... ")
+  s.sub$wt <- wavCWT(s.sub$s.sub, n.scale=200, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=30, wavelet="morlet")
+}
+
+if (hxExist == 0) {
+  harmonicity_series = rep(0, times = 1000)
+  for (t in 19000:20000) {
+    tslice_power = Mod(wt[t, 10:80])
+    harmonicity_series[t-18999] = harmonicDetect(tslice_power)$harmonicity_max
+  }
+
+  if (debug1 == 1) {
+    # to compare superimposed peaks visually
+    print("Plotting results")
+    par(mfrow=c(3,1))
+    plot(tp, type='l', axes=F)
+    axis(side = 1, at = seq(-100,100,1))
+    plot(hf, type='l', axes=F)
+    axis(side = 1, at = seq(-100,100,1))
+    plot(ccv.sub, type='l', axes=F)
+    axis(side = 1, at = seq(-100,100,1))
+    axis(side = 2)
+  }
+
+  tx = t(data.matrix(Mod(wt[19000:20000, 10:80])))
+
+
+  if (debug2 == 1) {
+    # to compare superimposed peaks visually
+    print("Plotting results")
+    par(mfrow=c(3,1))
+    plot(s.sub$s.sub[19000:20000], type='l')
+    plot_ly(z = tx, type = "heatmap")
+    plot(harmonicity_series, type='l')
+  }
+
+}

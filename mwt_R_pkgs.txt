@@ -4,20 +4,24 @@
 # experimenting with different R packages
 # source("/Users/lifepupil/Code/SWDreader/mwt_R_pkgs.txt")
 
+# EXAMPLE USE: for (i in 19760:19765) { Sys.sleep(2) ; harmonicDetect(Mod(wt[i, 1:41]))}
+
 # TO DO:
 # - Determine how to modify Morlet wavelet parameters to match LW algorithm if scale != frequency in Hz
 # - Determine whether frequencies along y-axis are log(frequency) so that harmonics detection can work
 # - How to speed up calculation? VERY SLOW!
 
-pkg = "wmtsa"
-startt = 400000
-endt = 450000
-wtExist = 1
+  pkg = "wmtsa"
+  startt = 400000
+  endt = 450000
+  wtExist = 1
 
 # EEG channel 1 (RF-RB?) for mouse 35567_052213.lwr
 print("reading channel data")
 s = read.table("./SWDreader//singleChannel")
+
 print("channel subset")
+# kludge
 s.sub = s$V1[startt:endt]
 # s.sub.df = data.frame(s.sub)
 s.sub = data.frame(s.sub)
@@ -36,66 +40,65 @@ if (pkg=="wmtsa") {
 
   if (wtExist==0) {
     print("Performing Morlet wavelet transform using wmtsa package ... ")
-    wt <- wavCWT(s.sub$s.sub, n.scale=200, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=30, wavelet="morlet")
+    s.sub$wt <- wavCWT(s.sub$s.sub, n.scale=200, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=30, wavelet="morlet")
+
+#  if ("wt" %in% names(s.sub)) {print("YES")}
+    if (any(names(s.sub) == "wt")) {print("YES")}
+
 
     # print("Rendering scalogram")
     # plot(wt, type='image')
   }
-
+}
 
   instPowerDo = 1
   ccCalc = 1
   t = 19800
 #  t = 19760
 
-  if (instPowerDo==1) {
-    # this gives you a time slice of the time-frequency representations needed for detection of harmonics and phase difference calculations
+if (instPowerDo==1) {
+  # this gives you a time slice of the time-frequency representations needed for detection of harmonics and phase difference calculations
 
-    tslice_phase <- Arg(wt[t, 1:41])
-    format(tslice, scientific=F)
+  tslice_phase <- Arg(wt[t, 1:41])
+  format(tslice, scientific=F)
+  tslice_power = Mod(wt[t, 1:41])
+  # plot(Mod(wt[t, 1:41]), type='l')
 
-    # plot(Mod(wt[t, 1:41]), type='l')
+  if (ccCalc==1) {
+    # cross-covariance
+    # harmonic filter with peaks set to those displayed in tslice_power
+    hf = rep(0,41)
+    hf[c(7,14,19,22)-5] = 1
+    tp = rev(tslice_power)
 
-    if (ccCalc==1) {
-      # cross-covariance
-      # harmonic filter with peaks set to those displayed in tslice_power
-      hf = rep(0,41)
-#      hf[c(33,25,19,15)-13] = 1
-#      hf[c(33,25,19,15)] = 1
-      hf[c(7,14,19,22)-5] = 1
-
-      tp = rev(tslice_power)
-      hfr = hf[16:34]
-
-      print("Performing cross covariance operation")
-      ccv = ccf(hf, tp, type="covariance", lag.max=41)
+    print("Performing cross covariance operation")
+    ccv = ccf(tp, hf, type="covariance", lag.max=41)
 #      ccv = ccf(hf, tp, type="covariance")
 #      ccv = ccf(hf, tp, type="covariance", lag.max=41)$acf[41:81]
 
-      # to compare superimposed peaks visually
-      print("Plotting results")
-      par(mfrow=c(3,1))
-      plot(tp, type='l', axes=F)
-      axis(side = 1, at = seq(-100,100,1))
-      plot(hf, type='l', axes=F)
-      axis(side = 1, at = seq(-100,100,1))
+    ccv.sub = ccv$acf[ which(ccv$lag >=0)]
+    # to compare superimposed peaks visually
+    print("Plotting results")
+    par(mfrow=c(3,1))
+    plot(tp, type='l', axes=F)
+    axis(side = 1, at = seq(-100,100,1))
+    plot(hf, type='l', axes=F)
+    axis(side = 1, at = seq(-100,100,1))
+    plot(ccv.sub, type='l', axes=F)
+    axis(side = 1, at = seq(-100,100,1))
+    axis(side = 2)
 
-      # rr = rev(ccv$acf)
-      plot(ccv, type='l', axes=F)
-      axis(side = 1, at = seq(-100,100,1))
-      axis(side = 2)
 
-
-      # to identify the best candidate for harmonic frequencies (assuming that single harmonic filter can be used)
-#      compensate_index0 = 1
+    # to identify the best candidate for harmonic frequencies (assuming that single harmonic filter can be used)
+#      compensate_noindex0 = 1
 #      compensate_firstpeak_index = 1
-#      harmonicity = max(ccv$acf)
-#      ccv_index_max = which.max(ccv$acf)
-#      ccv_shift = ccv$lag[ccv_index_max,1,1]
-#      ccv_index_freq = abs(ccv_shift) + compensate_noindex0 + compensate_firstpeak_index
-    }
+#      harmonicity_max = max(ccv.sub)
+#      harmonicity_max_index = which.max(ccv.sub)
+#      index_shift = ccv$lag[harmonicity_max_index,1,1]
+#      freq_candidate = abs(index_shift) + compensate_noindex0 + compensate_firstpeak_index
   }
 }
+
 
 # Saving time-frequency plots
 # jpeg('rplot.jpg')
