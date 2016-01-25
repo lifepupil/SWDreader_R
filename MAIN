@@ -11,7 +11,7 @@ startt = 400000
 endt = 450000
 t = 19800
 
-wtExist = 1
+wtExist = 0
 hxExist = 0
 debug1 = 0
 debug2 = 1
@@ -21,7 +21,7 @@ print("reading channel data")
 s = read.table("./SWDreader//singleChannel")
 
 print("channel subset")
-# kludge
+# set up data frame for downstream
 s.sub = s$V1[startt:endt]
 s.sub = data.frame(s.sub)
 
@@ -29,6 +29,7 @@ s.sub = data.frame(s.sub)
 if (wtExist == 0) {
   print("Performing Morlet wavelet transform using wmtsa package ... ")
   s.sub$wt <- wavCWT(s.sub$s.sub, n.scale=200, scale.range=deltat(s.sub$s.sub) * c(1,128), shift=30, wavelet="morlet")
+  wtExist = 1
 }
 
 if (hxExist == 0) {
@@ -53,5 +54,7 @@ if (hxExist == 0) {
     plot(harmonicity_series, type='l')
     plot(harmonicFreq_series, type='l')
   }
+
+#  hxExist = 1
 
 }
