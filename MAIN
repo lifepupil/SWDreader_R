@@ -2,8 +2,6 @@
 # SWDreader
 
 library(wmtsa)
-library(plotly)
-### tx = t(data.matrix(Mod(wt[19000:20000, 10:80]))) ;; plot_ly(z = tx, type = "heatmap")
 
 source("/Users/lifepupil/Code/SWDreader/SWDreader_functions.txt")
 
@@ -12,9 +10,12 @@ endt = 450000
 t = 19800
 
 wtExist = 1
-hxExist = 0
+hxExist = 1
+h_phaseExist = 0
+
+plot_MWT = F
 debug1 = 0
-debug2 = 1
+debug2 = 0
 
 # EEG channel 1 (RF-RB?) for mouse 35567_052213.lwr
 print("reading channel data")
@@ -40,18 +41,41 @@ if (hxExist == 0) {
     harmonicity_series[t-18999] = harmonicDetect(tslice_power)$harmonicity_max
     harmonicFreq_series[t-18999] = harmonicDetect(tslice_power)$freq_candidate
   }
+}
 
-  tx = t(data.matrix(Mod(wt[19000:20000, 10:80])))
+if (h_phaseExist == 0) {
+  harmonicPhiFF_series = rep(0, times = 1000)
+  test = matrix(0, nrow=70, ncol=1000)
 
+  for (t in 1:1000) {
+    test[ harmonicFreq_series[t]+c(1,8,13,16), t ] = 1
 
-  if (debug2 == 1) {
-    # to compare superimposed peaks visually
-    print("Plotting results")
-    par(mfrow=c(3,1))
-    plot(s.sub$s.sub[19000:20000], type='l')
-#    plot_ly(z = tx, type = "heatmap")
-    plot(harmonicity_series, type='l')
-    plot(harmonicFreq_series, type='l')
+    t_H1_phi <- Arg(wt[t, harmonicFreq_series[t]])
+#    t_H2_phi <- Arg(wt[t, harmonicFreq_series[t]] + )
+#    t_H3_phi <- Arg(wt[t, harmonicFreq_series[t]])
+#    t_H4_phi <- Arg(wt[t, harmonicFreq_series[t]])
+
+    harmonicPhiFF_series[t] <- t_H1_phi
   }
 
+  # TEST for correct data
+  # library(grid)
+  # grid.raster(test, interpolate=F)
+}
+
+if (plot_MWT == T) {
+  print("Plotting modulus from Morlet wavelet transform of EEG")
+  library(plotly)
+  tArg_ly = t(data.matrix(Mod(wt[19000:20000, 10:80])))
+  tMod_ly = t(data.matrix(Mod(wt[19000:20000, 10:80])))
+  plot_ly(z = tMod_ly, type = "heatmap")
+}
+
+if (debug2 == 1) {
+  # to compare superimposed peaks visually
+  print("Plotting results")
+  par(mfrow=c(3,1))
+  plot(s.sub$s.sub[19000:20000], type='l')
+  plot(harmonicPhiFF_series[1:1001], type='l')
+  plot(harmonicFreq_series[1:1002], type='l')
 }

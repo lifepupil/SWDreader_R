@@ -7,7 +7,8 @@ debugg = 0
 
   # harmonic filter with peaks set to those displayed in tslice_power
   hf = rep(0,41)
-  hf[ c(7,14,19,22)-5 ] = 1
+  # hf[ c(7,14,19,22)-5 ] = 1
+  hf[ c(2,9,14,17) ] = 1
 
   # Performing cross covariance operation
   ccv = ccf(tp, hf, type="covariance", lag.max=41, plot=F)
