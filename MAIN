@@ -44,23 +44,29 @@ if (hxExist == 0) {
 }
 
 if (h_phaseExist == 0) {
-  harmonicPhiFF_series = rep(0, times = 1000)
-  test = matrix(0, nrow=70, ncol=1000)
+  harmonicPhi_series = matrix(0, nrow=4, ncol=1000)
+  test = matrix(0, nrow=71, ncol=21)
 
-  for (t in 1:1000) {
-    test[ harmonicFreq_series[t]+c(1,8,13,16), t ] = 1
+  for (t in 19670:19680) {
+    test[ harmonicFreq_series[t]+c(1,8,13,16), t-19669 ] = 1
 
     t_H1_phi <- Arg(wt[t, harmonicFreq_series[t]])
 #    t_H2_phi <- Arg(wt[t, harmonicFreq_series[t]] + )
 #    t_H3_phi <- Arg(wt[t, harmonicFreq_series[t]])
 #    t_H4_phi <- Arg(wt[t, harmonicFreq_series[t]])
 
-    harmonicPhiFF_series[t] <- t_H1_phi
+    harmonicPhi_series[1,t] <- t_H1_phi
   }
 
-  # TEST for correct data
+  # TEST for correct indices of harmonics relative to Mod MWT
   # library(grid)
-  # grid.raster(test, interpolate=F)
+  for (i in 10:20) {
+    test[1:71,10:20] = t((Arg(wt[19670:19680,10:80]) + pi)/(2*pi))
+
+test[1:71,10] = t((Arg(wt[19670,10:80]) + pi)/(2*pi))
+    grid.raster(test, interpolate=F)
+
+  }
 }
 
 if (plot_MWT == T) {
